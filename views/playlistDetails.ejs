@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-3xl mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-4">Playlist Details</h1>
+        <div id="songList" class="divide-y divide-gray-200">
+        </div>
+        <div id="pagination" class="flex justify-center mt-8">
+        </div>
+    </div>
+
+    <div id="loader" class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+    </div>
+
+    <script>
+        function displaySongs(songs) {
+            const songList = document.getElementById('songList');
+
+            songList.innerHTML = '';
+
+            songs.tracks.items.forEach(song => {
+                const songItem = document.createElement('div');
+                songItem.classList.add('py-4', 'flex', 'items-center', 'justify-between');
+
+                const songName = document.createElement('span');
+                songName.textContent = song.track.name;
+
+                // const artists = document.createElement('span');
+                // artists.textContent = song.track.artists.map(artist => artist.name).join(', ');
+
+                songItem.appendChild(songName);
+                // songItem.appendChild(artists);
+
+                songList.appendChild(songItem);
+            });
+        }
+
+        function displayPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.classList.add('mx-2', 'px-4', 'py-2', 'bg-blue-500', 'text-white', 'rounded-md', 'hover:bg-blue-600', 'focus:outline-none');
+
+                pageButton.addEventListener('click', function() {
+                    fetch(`/view?page=${i}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySongs(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching songs:', error);
+                    });
+                });
+
+                pagination.appendChild(pageButton);
+            }
+        }
+
+        const loader = document.getElementById('loader');
+        loader.classList.remove('hidden');
+
+        fetch('/getPlaylistDetails/<%= playlistDetails.id %>')
+        .then(response => response.json())
+        .then(data => {
+            displaySongs(data);
+            console.log(data)
+            displayPagination(Math.ceil(data.tracks.total / data.tracks.limit));
+            loader.classList.add('hidden'); 
+        })
+        .catch(error => {
+            console.error('Error fetching songs:', error);
+            loader.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
