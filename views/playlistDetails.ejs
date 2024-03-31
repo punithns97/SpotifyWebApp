@@ -32,12 +32,7 @@
                 const songName = document.createElement('span');
                 songName.textContent = song.track.name;
 
-                // const artists = document.createElement('span');
-                // artists.textContent = song.track.artists.map(artist => artist.name).join(', ');
-
                 songItem.appendChild(songName);
-                // songItem.appendChild(artists);
-
                 songList.appendChild(songItem);
             });
         }

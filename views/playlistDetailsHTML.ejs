@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Details</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-3xl mx-auto py-8">
+        <h1 class="text-3xl font-bold mb-4">Playlist Details</h1>
+        <div id="songList" class="divide-y divide-gray-200">
+            
+        </div>
+        <div id="pagination" class="flex justify-center mt-8">
+            
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playlistID = '<%= playlistID %>';
+
+            
+            function displaySongs(songs) {
+                const songList = document.getElementById('songList');
+
+                
+                songList.innerHTML = '';
+
+                songs.forEach(song => {
+                    const songItem = document.createElement('div');
+                    songItem.classList.add('py-4', 'flex', 'items-center', 'justify-between');
+
+                    const songName = document.createElement('span');
+                    songName.textContent = song.track.name;
+
+                    const artists = document.createElement('span');
+                    artists.textContent = song.track.artists[0].name;
+
+                    songItem.appendChild(songName);
+                    songItem.appendChild(artists);
+
+                    songList.appendChild(songItem);
+                });
+            }
+
+            
+            function displayPagination(totalPages, currentPage) {
+                const pagination = document.getElementById('pagination');
+
+                
+                pagination.innerHTML = '';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    pageButton.classList.add('mx-2', 'px-4', 'py-2', 'bg-blue-500', 'text-white', 'rounded-md', 'hover:bg-blue-600', 'focus:outline-none');
+
+                    
+                    pageButton.addEventListener('click', function() {
+                        
+                        fetch(`/getPlaylistDetailsData/${playlistID}?page=${i}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            displaySongs(data.items);
+                            
+                            updateActivePageButton(i);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching playlist details:', error);
+                        });
+                    });
+
+                    pagination.appendChild(pageButton);
+                }
+
+                
+                updateActivePageButton(currentPage);
+            }
+
+            
+            function updateActivePageButton(currentPage) {
+                const paginationButtons = document.querySelectorAll('#pagination button');
+                paginationButtons.forEach(button => {
+                    if (parseInt(button.textContent) === currentPage) {
+                        button.classList.add('bg-blue-600');
+                    } else {
+                        button.classList.remove('bg-blue-600');
+                    }
+                });
+            }
+
+            
+            fetch(`/getPlaylistDetailsData/${playlistID}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                displaySongs(data.items);
+                
+                const totalPages = Math.ceil(data.total / data.limit);
+                displayPagination(totalPages, 1); 
+            })
+            .catch(error => {
+                console.error('Error fetching playlist details:', error);
+            });
+        });
+    </script>
+</body>
+</html>

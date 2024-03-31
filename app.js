@@ -26,7 +26,6 @@ app.use(passport.session())
 app.set('views', path.join(__dirname, 'views'));
 
 
-// Function to obtain access token from Spotify API
 function getAccessToken(callback) {
     const authOptions = {
         url: 'https://accounts.spotify.com/api/token',
@@ -135,14 +134,14 @@ app.get('/callback', async (req, res, next) => {
         req.session.info = info;
 
         try {
-            // Fetch the first set of playlists
+            
             const playlists = await fetchPlaylists(req.session.user.access_token, user,info);
             
-            // Render the view page with the fetched playlists
+            
             res.render('view', { playlists });
         } catch (error) {
             console.error('Error fetching playlists:', error);
-            // Render an error page if fetching playlists fails
+            
             res.render('error', { message: 'Error fetching playlists' });
         }
     })(req, res, next);
@@ -265,37 +264,93 @@ app.get('/callback', async (req, res, next) => {
 //     });
 // });
 
+// app.get('/getPlaylistDetails/:playlistID', async (req, res) => {
+//     try {
+//         const playlistID = req.params.playlistID;
+//         const accessToken = req.session.user.accessToken
+//         const playlistDetails = await fetchPlaylistDetails(playlistID,accessToken);
+//         console.log(playlistDetails)
+//         res.render('playlistDetails', { playlistDetails });
+//         // res.send(playlistDetails);
+//     } catch (error) {
+//         console.log("errorrrrrrrrrrr");
+//         console.error('Error fetching playlist details:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
+
 app.get('/getPlaylistDetails/:playlistID', async (req, res) => {
     try {
+        // Extract playlistID from request parameters
         const playlistID = req.params.playlistID;
-        const accessToken = req.session.user.accessToken
-        const playlistDetails = await fetchPlaylistDetails(playlistID,accessToken);
-        console.log(playlistDetails)
-        res.render('playlistDetails', { playlistDetails });
-        // res.send(playlistDetails);
+        console.log(playlistID);
+        // Render HTML page and pass playlistID as data
+        res.render('playlistDetailsHTML', { playlistID });
     } catch (error) {
-        console.log("errorrrrrrrrrrr");
-        console.error('Error fetching playlist details:', error);
+        console.error('Error rendering playlist details page:', error);
         res.status(500).send('Internal Server Error');
     }
 });
 
 
+// app.get('/getPlaylistDetailsData/:playlistID', async (req, res) => {
+//     try {
+//         const playlistID = req.params.playlistID;
+//         const accessToken = req.session.user.accessToken;
+//         const playlistDetails = await fetchPlaylistDetails(playlistID, accessToken);
+//         // res.render('playlistDetailsHTML', { playlistDetails });
+//         console.log(playlistDetails);
+//         res.send(playlistDetails)
+//     } catch (error) {
+//         console.error('Error fetching playlist details:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// });
 
-// Function to fetch playlist details from Spotify API
-async function fetchPlaylistDetails(playlistID,accessToken) {
-    console.log(playlistID);
-    const url = `https://api.spotify.com/v1/playlists/${playlistID}/`;
+// async function fetchPlaylistDetails(playlistID,accessToken) {
+//     console.log(playlistID);
+//     const url = `https://api.spotify.com/v1/playlists/${playlistID}/`;
+//     const response = await fetch(url, {
+//         method: 'GET',
+//         headers: {
+//             'Authorization': 'Bearer ' + accessToken
+//         }
+//     });
+//     console.log("fetchingPlaylist Details");
+//     const data = await response.json();
+//     return data;
+// }
+
+app.get('/getPlaylistDetailsData/:playlistID', async (req, res) => {
+    try {
+        const playlistID = req.params.playlistID;
+        const accessToken = req.session.user.accessToken;
+        const page = req.query.page || 1; 
+        const limit = 10; 
+        const offset = (page - 1) * limit; 
+
+        const playlistDetails = await fetchPlaylistDetails(playlistID, accessToken, limit, offset);
+        console.log("pageno",page);
+        console.log(playlistDetails);
+        res.send(playlistDetails);
+    } catch (error) {
+        console.error('Error fetching playlist details:', error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+async function fetchPlaylistDetails(playlistID, accessToken, limit, offset) {
+    const url = `https://api.spotify.com/v1/playlists/${playlistID}/tracks?limit=${limit}&offset=${offset}`;
     const response = await fetch(url, {
         method: 'GET',
         headers: {
             'Authorization': 'Bearer ' + accessToken
         }
     });
-    console.log("fetchingPlaylist Details");
     const data = await response.json();
     return data;
 }
+
 
 app.get('/view', async (req, res) => {
     try {
