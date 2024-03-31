@@ -12,8 +12,8 @@ const app = express();
 
 const ejs = require('ejs');
 app.set('view engine', 'ejs');
-const client_id = '5262a5ba514a4b4a80f53fbbf9adb3f0';
-const client_secret = 'b880230554024195aaaae59322312306';
+const client_id = 'd7ced1995ed04e8abb6a19c13dd9d053';
+const client_secret = '60cd0573cebf48e48ad7e552c099fea8';
 
 app.use(bodyParser.json())
 app.use(express.static('public'));
@@ -65,7 +65,7 @@ app.get('/viewPlaylists', (req, res) => {
 
 app.get('/login', 
     passport.authenticate('spotify',{
-        scope : ['user-read-email', 'user-read-private']
+        scope : ['user-read-email']
     }),
     function(req,res){
 
@@ -125,6 +125,7 @@ app.get('/callback', async (req, res, next) => {
     passport.authenticate('spotify', async (err, user, info) => {
         if (err) {
             return next(err);
+            // return res.redirect('/login');
         }
         if (!user) {
             return res.redirect('/login');
